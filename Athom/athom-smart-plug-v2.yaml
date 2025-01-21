@@ -22,12 +22,6 @@ packages:
     refresh: 5min
 
 
-globals:
-  - id: "relay_state"
-    type: std::string
-    initial_value: "Off"
-
-
 mqtt:
   id: mqtt_sensor
   broker: !secret broker_ip
@@ -162,6 +156,10 @@ globals:
     type: float
     restore_value: yes
     initial_value: '0.0'
+
+  - id: "relay_state"
+    type: std::string
+    initial_value: "Off"
 
 
 binary_sensor:
