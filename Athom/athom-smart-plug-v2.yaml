@@ -1,0 +1,239 @@
+substitutions: # per device-specific substitutions (copy this only to the esphome web ui)
+  name: "smart-plug-v2"
+  friendly_name: "Smart Plug V2"
+  # Allows ESP device to be automatically lined to an 'Area' in Home Assistant. Typically used for areas such as 'Lounge Room', 'Kitchen' etc
+  room: ""
+  device_description: "athom smart plug v2"
+  project_name: "Athom Technology.Smart Plug V2"
+  project_version: "2.0.1"
+  relay_restore_mode: RESTORE_DEFAULT_OFF
+  sensor_update_interval: 5s
+  sensor_accuracy_decimals: "3"
+  # Current Limit in Amps. AU Plug = 10. IL, BR, EU, UK, US Plug = 16.
+  current_limit : "16"
+
+
+packages:
+  # device base packages
+  device_base:
+    url: https://github.com/Cahlil-Togonon/Smart-iLAB
+    ref: main
+    file: packages/device_base.yaml
+    refresh: 5min
+
+
+globals:
+  - id: "relay_state"
+    type: std::string
+    initial_value: "Off"
+
+
+mqtt:
+  id: mqtt_sensor
+  broker: !secret broker_ip
+  port: !secret broker_port
+  username: !secret broker_username
+  password: !secret broker_password
+  on_json_message: 
+    topic: "${device_name}/${device_id}/light"
+    then: 
+       - if: 
+          condition: 
+            lambda: !lambda |-
+              if(x.containsKey("state")){
+              if(x["state"] == "On"){
+              id(relay_state) = "On";
+              return true;
+              }
+              }
+              id(relay_state) = "Off";
+              return false;
+          then:
+            - switch.turn_on: relay
+          else: 
+            - switch.turn_off: relay
+
+
+sensor:
+  - platform: cse7766
+    current:
+      name: "Current"
+      id: current
+      accuracy_decimals: ${sensor_accuracy_decimals}
+      filters:
+        - throttle_average: ${sensor_update_interval}
+        # - lambda: if (x < 0.060) return 0.0; else return x;   #For the chip will report less than 3w power when no load is connected
+      on_value_range:
+        - above: ${current_limit}
+          then:
+            - switch.turn_off: relay
+
+    voltage:
+      name: "Voltage"
+      id: voltage
+      accuracy_decimals: ${sensor_accuracy_decimals}
+      filters:
+        - throttle_average: ${sensor_update_interval}
+
+    power:
+      name: "Power"
+      id: power_sensor
+      accuracy_decimals: ${sensor_accuracy_decimals}
+      filters:
+        - throttle_average: ${sensor_update_interval}
+        # - lambda: if (x < 3.0) return 0.0; else return x;    #For the chip will report less than 3w power when no load is connected
+
+    energy:
+      name: "Energy"
+      id: energy
+      accuracy_decimals: ${sensor_accuracy_decimals}
+      unit_of_measurement: kWh
+      filters:
+        - throttle: ${sensor_update_interval}
+        # Multiplication factor from W to kW is 0.001
+        - multiply: 0.001
+      on_value:
+        then:
+          - lambda: |-
+              static float previous_energy_value = 0.0;
+              float current_energy_value = id(energy).state;
+              id(total_energy) += current_energy_value - previous_energy_value;
+              previous_energy_value = current_energy_value;
+              id(total_energy_sensor).update();
+
+  - platform: template
+    name: "Total Energy"
+    id: total_energy_sensor
+    unit_of_measurement: kWh
+    device_class: "energy"
+    state_class: "total_increasing"
+    icon: "mdi:lightning-bolt"
+    accuracy_decimals: ${sensor_accuracy_decimals}
+    lambda: |-
+      return id(total_energy);
+    update_interval: never
+
+  - platform: total_daily_energy
+    name: "Total Daily Energy"
+    id: total_daily_energy_sensor
+    restore: true
+    power_id: power_sensor
+    unit_of_measurement: kWh
+    accuracy_decimals: ${sensor_accuracy_decimals}
+    filters:
+      - multiply: 0.001
+
+
+esphome:
+  name: "${name}"
+  friendly_name: "${friendly_name}"
+  area: "${room}"
+  name_add_mac_suffix: true
+  min_version: 2024.2.1
+  project:
+    name: "${project_name}"
+    version: "${project_version}"
+
+  on_boot: 
+    then:
+      - switch.turn_off: relay
+
+
+esp8266:
+  board: esp8285
+  restore_from_flash: true
+
+
+preferences:
+  flash_write_interval: 5min
+
+
+logger:
+  baud_rate: 0
+
+
+uart:
+  rx_pin: RX
+  baud_rate: 4800
+
+
+globals:
+  - id: total_energy
+    type: float
+    restore_value: yes
+    initial_value: '0.0'
+
+
+binary_sensor:
+  - platform: gpio
+    pin:
+      number: 5
+      mode: INPUT_PULLUP
+      inverted: true
+    name: "Power Button"
+    disabled_by_default: true
+    on_multi_click:
+      - timing:
+        - ON for at most 1s
+        - OFF for at least 0.2s
+        then:
+          - switch.toggle: relay
+      - timing:
+        - ON for at least 4s
+        then:
+          - button.press: Reset
+
+
+button:
+  - platform: factory_reset
+    name: "Factory Reset"
+    id: Reset
+    entity_category: config
+
+  - platform: safe_mode
+    name: "Safe Mode"
+    internal: false
+    entity_category: config
+
+
+switch:
+  - platform: gpio
+    name: "Switch"
+    pin: GPIO12
+    id: relay
+    restore_mode: ${relay_restore_mode}
+
+
+light:
+  - platform: status_led
+    name: "Status LED"
+    id: blue_led
+    disabled_by_default: true
+    pin:
+      inverted: true
+      number: GPIO13
+
+
+# Script to publish MQTT messages
+script:
+  - id: mqtt_publish_sensor_data
+    then:
+      - lambda: !lambda |-
+          id(mqtt_sensor).publish_json("${device_manufacturer}-smart-plug-v2-${device_id}/data", [=](JsonObject root){
+          root["date"] = id(sntp_time).now().strftime("%x");
+          root["time"] = id(sntp_time).now().strftime("%X");
+          root["current"] = id(current).state;
+          root["energy"] = id(energy).state;
+          root["power"] = id(power_sensor).state;
+          root["total_daily_energy"] = id(total_daily_energy_sensor).state;
+          root["total_energy"] = id(total_energy_sensor).state;
+          root["voltage"] = id(voltage).state;
+          });
+
+
+time:
+  - platform: sntp
+    on_time: 
+      seconds: /10
+      then: 
+        - script.execute: mqtt_publish_sensor_data
