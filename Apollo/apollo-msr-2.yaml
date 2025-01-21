@@ -1,6 +1,6 @@
-substitutions: 
+substitutions: # per device-specific substitutions (copy this only to the esphome web ui)
   name: apollo-msr-2
-  version:  "24.5.9.1"
+  version: "24.5.9.1"
   device_description: ${name} made by Apollo Automation - version ${version}.
 
 packages:
@@ -39,15 +39,16 @@ globals:
     restore_value: no
     type: bool
     initial_value: "false"
-  
-  - id: mqtt_pub_topic
-    restore_value: False
+
+  - id: "rgb_light_state"
+    restore_value: no
     type: std::string
-    initial_value: ${mqtt_publish_topic}
-  - id: mqtt_sub_topic
-    restore_value: False
-    type: std::string
-    initial_value: ${mqtt_command_topic}
+  - id: "rgb_light_values"
+    restore_value: no
+    type: std::map<std::string, int>
+  - id: "rgb_light_brightness"
+    restore_value: no
+    type: int
 
 mqtt:
   id: mqtt_sensor
@@ -55,16 +56,61 @@ mqtt:
   port: !secret broker_port
   username: !secret broker_username
   password: !secret broker_password
+  on_json_message: 
+    - topic: "${device_name}/${device_id}/light"
+      then: 
+        - if:
+            condition: 
+              lambda: !lambda |-
+                if(x.containsKey("state")){
+                if(x["state"] == "On"){
+                id(rgb_light_state) = "On";
+                return true;
+                }
+                }
+                id(rgb_light_state) = "Off";
+                return false;
+            then:
+              - light.turn_on: 
+                  id: rgb_light
 
+                  red: !lambda |-
+                    if(x.containsKey("color")){
+                    if(x["color"].containsKey("r")){
+                    id(rgb_light_values)["r"] = x["color"]["r"];
+                    return x["color"]["r"];}}
+                    return 0;
+                  green: !lambda |-
+                    if(x.containsKey("color")){
+                    if(x["color"].containsKey("g")){
+                    id(rgb_light_values)["g"] = x["color"]["g"];
+                    return x["color"]["g"];}}
+                    return 0;
+                  blue: !lambda |-
+                    if(x.containsKey("color")){
+                    if(x["color"].containsKey("b")){
+                    id(rgb_light_values)["b"] = x["color"]["b"];
+                    return x["color"]["b"];}}
+                    return 0;
+                  brightness: !lambda |-
+                    if(x.containsKey("brightness")){
+                    id(rgb_light_brightness) = x["brightness"];
+                    return x["brightness"];
+                    }
+                    return 0;
+            else:
+              - light.turn_off: rgb_light
+    - topic: "${device_name}/${device_id}/buzzer"
+      then: 
+        - rtttl.play: !lambda |-
+            if(x.containsKey("mtttl_string"))
+            return x["mtttl_string"];
+            return "";
+                
 sensor:
-  - platform: mqtt_subscribe
-    id: mqtt_subscribe_sensor
-    topic: id(mqtt_sub_topic)
-
   - platform: scd4x
     id: scd40
     co2:
-      name: "CO2"
       id: co2
     automatic_self_calibration: false
     update_interval: 60s
@@ -75,10 +121,8 @@ sensor:
   - platform: dps310
     id: dps_310
     pressure:
-      name: "DPS310 Pressure"
       id: dps310pressure
     temperature:
-      name: "DPS310 Temperature"
       id: dps310temperature
       filters:
         - lambda: return x - id(dps310_temperature_offset).state;
@@ -87,91 +131,84 @@ sensor:
     
   - platform: ld2410
     moving_distance:
-      name: Radar Moving Distance
       id: moving_distance
     still_distance:
-      name: Radar Still Distance
       id: still_distance
     moving_energy:
-      name: Radar Move Energy
       id: radar_moving_energy
     still_energy:
-      name: Radar Still Energy
       id: radar_still_energy
     detection_distance:
-      name: Radar Detection Distance
       id: radar_detection_distance
     g0:
       move_energy:
         name: g0 move energy
         state_class: measurement
       still_energy:
-        name: g0 still energy
+        id: g0_still_energy
         state_class: measurement
     g1:
       move_energy:
         name: g1 move energy
         state_class: measurement
       still_energy:
-        name: g1 still energy
+        id: g1_still_energy
         state_class: measurement
     g2:
       move_energy:
         name: g2 move energy
         state_class: measurement
       still_energy:
-        name: g2 still energy
+        id: g2_still_energy
         state_class: measurement
     g3:
       move_energy:
         name: g3 move energy
         state_class: measurement
       still_energy:
-        name: g3 still energy
+        id: g3_still_energy
         state_class: measurement
     g4:
       move_energy:
         name: g4 move energy
         state_class: measurement
       still_energy:
-        name: g4 still energy
+        id: g4_still_energy
         state_class: measurement
     g5:
       move_energy:
         name: g5 move energy
         state_class: measurement
       still_energy:
-        name: g5 still energy
+        id: g_still_energy
         state_class: measurement
     g6:
       move_energy:
-        name: g6 move energy
+        name: g8_still_energy
         state_class: measurement
       still_energy:
-        name: g6 still energy
+        id: g6_still_energy
         state_class: measurement
     g7:
       move_energy:
         name: g7 move energy
         state_class: measurement
       still_energy:
-        name: g7 still energy
+        id: g7_still_energy
         state_class: measurement
     g8:
       move_energy:
         name: g8 move energy
         state_class: measurement
       still_energy:
-        name: g8 still energy
+        id: g8_still_energy
         state_class: measurement
   
   - platform: ltr390
     id: ltr_390
     light:
-      name: "LTR390 Light"
       id: ltr390light
     uv_index:
-      name: "LTR390 UV Index"
       id: ltr390uvindex
 
 
@@ -195,12 +232,19 @@ esphome:
             - lambda: "return id(runTest);"
           then:
             - lambda: "id(testScript).execute();"
-
+      - lambda: !lambda |-
+          id(rgb_light_state) = "Off";
+          id(rgb_light_values)["r"] = 0;
+          id(rgb_light_values)["g"] = 0;
+          id(rgb_light_values)["b"] = 0;
+          id(rgb_light_brightness)  = 0;
+          
   project:
     name: "ApolloAutomation.MSR-2"
     version: "${version}"
 
   min_version: 2024.2.0
+
 
 # Define Board
 esp32:
@@ -238,6 +282,7 @@ api:
             id: ld2410_radar
             password: !lambda 'return password;'
 
+
 # Set Up Key Ports For Communication
 i2c:
   sda: GPIO1
@@ -250,6 +295,7 @@ uart:
   baud_rate: 256000
   parity: NONE
   stop_bits: 1
+
 
 # Numbers For Configuration
 number:
@@ -319,7 +365,7 @@ number:
     update_interval: never
     step: 0.1
     mode: box
-# Setting start of zone 1 occupancy
+  # Setting start of zone 1 occupancy
   - platform: template
     name: "Radar Zone 1 Start"
     id: radar_z1_start
@@ -335,7 +381,6 @@ number:
     icon: "mdi:arrow-collapse-right"
     entity_category: CONFIG
     unit_of_measurement: "cm"
-
   # Setting ending of zone 1 occupancy
   - platform: template
     name: "Radar End Zone 1"
@@ -352,7 +397,6 @@ number:
     icon: "mdi:arrow-collapse-right"
     entity_category: CONFIG
     unit_of_measurement: "cm"
-
   # Setting ending of zone 2 occupancy
   - platform: template
     name: "Radar End Zone 2"
@@ -369,7 +413,6 @@ number:
     icon: "mdi:arrow-collapse-right"
     entity_category: CONFIG
     unit_of_measurement: "cm"
-
   # Setting ending of zone 3 occupancy
   - platform: template
     name: "Radar End Zone 3"
@@ -387,6 +430,7 @@ number:
     entity_category: CONFIG
     unit_of_measurement: "cm"
 
+
 # Buzzer
 output:
   - platform: ledc
@@ -394,6 +438,7 @@ output:
     id: buzzer
 rtttl:
  output: buzzer
+
 
 binary_sensor:
   - platform: ld2410
@@ -457,17 +502,18 @@ binary_sensor:
       then:
         - lambda: |-
             if (millis() - id(button_press_timestamp) >= 1000) {
-              id(testCycleCount) = 0;
-              id(runTest) = true;
-              id(testScript).execute();
+            id(testCycleCount) = 0;
+            id(runTest) = true;
+            id(testScript).execute();
             }
             else if (millis() - id(button_press_timestamp) >= 8000) {
-              id(factory_reset_switch).turn_on();
-              
+            id(factory_reset_switch).turn_on();
             }
+
 
 ld2410:
   id: ld2410_radar
+
 
 light:
   - platform: esp32_rmt_led_strip
@@ -492,7 +538,7 @@ light:
           update_interval: 100ms
           min_brightness: 50%
           max_brightness: 100%
-    
+
 
 button:
   - platform: factory_reset
@@ -641,13 +687,18 @@ script:
                     blue: 0%
                 - light.turn_off:
                     id: rgb_light
-  # Script to publish MQTT messages
+  
+  # script to publish MQTT messages
   - id: mqtt_publish_sensor_data
     then:
       - lambda: !lambda |-
-          id(mqtt_sensor).publish_json(id(mqtt_pub_topic), [=](JsonObject root){
+          id(mqtt_sensor).publish_json("apollo-msr-2-${device_id}/data", [=](JsonObject root){
+
+          // date and time
           root["date"] = id(sntp_time).now().strftime("%x");
           root["time"] = id(sntp_time).now().strftime("%X");
+
+          // sensor data
           root["co2"] = id(co2).state;
           root["pressure"]    = id(dps310pressure).state;
           root["temperature"] = id(dps310temperature).state;
@@ -662,7 +713,18 @@ script:
           root["detection_target"] = id(radar_has_target).state;
           root["moving_target"]    = id(radar_has_moving_target).state;
           root["still_target"]     = id(radar_has_still_target).state;
+
+          // rgb light data
+          root["state"] = id(rgb_light_state);
+          root["r"] = id(rgb_light_values)["r"];
+          root["g"] = id(rgb_light_values)["g"];
+          root["b"] = id(rgb_light_values)["b"];
+          root["brightness"] = id(rgb_light_brightness);
+
           });
+
+
+# publish sensor data every 10 seconds
 time:
   - platform: sntp
     on_time: 
