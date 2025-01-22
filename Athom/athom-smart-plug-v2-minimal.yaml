@@ -28,17 +28,7 @@ substitutions: # per device-specific substitutions (copy this only to the esphom
   flash_write_interval: 10min
 
   timezone: ""                                    # Set timezone of the device. Can be entered in unix Country/Area format (i.e. "Australia/Sydney")
-  esp_wifi_scan_internal: true                    # set to false to show the full wifi scan results
 
-# esphome:
-#   name: ${device_id}
-#   build_path: ./build/${device_id}
-
-# ${platform}:
-#   board: ${board}
-
-# preferences:
-#   flash_write_interval: ${flash_write_interval}
 
 packages:
   wifi:
@@ -51,30 +41,10 @@ packages:
     ref: main
     file: packages/base_packages/api.yaml
     refresh: 5min
-  safe_mode:
-    url: https://github.com/Cahlil-Togonon/Smart-iLAB
-    ref: main
-    file: packages/base_packages/safe_mode.yaml
-    refresh: 5min
   ota:
     url: https://github.com/Cahlil-Togonon/Smart-iLAB
     ref: main
     file: packages/base_packages/ota.yaml
-    refresh: 5min
-  logger:
-    url: https://github.com/Cahlil-Togonon/Smart-iLAB
-    ref: main
-    file: packages/base_packages/logger.yaml
-    refresh: 5min
-  web_server:
-    url: https://github.com/Cahlil-Togonon/Smart-iLAB
-    ref: main
-    file: packages/base_packages/web_server.yaml
-    refresh: 5min
-  binary_sensor:
-    url: https://github.com/Cahlil-Togonon/Smart-iLAB
-    ref: main
-    file: packages/base_packages/binary_sensor.yaml
     refresh: 5min
   sensor:
     url: https://github.com/Cahlil-Togonon/Smart-iLAB
