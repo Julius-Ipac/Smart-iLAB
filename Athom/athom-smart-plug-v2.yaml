@@ -39,7 +39,7 @@ mqtt:
   username: !secret broker_username
   password: !secret broker_password
   on_json_message: 
-    topic: "${device_name}/${device_id}/light"
+    topic: "${device_name}/${device_id}/relay"
     then: 
        - if: 
           condition: 
