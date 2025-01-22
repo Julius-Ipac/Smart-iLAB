@@ -41,10 +41,30 @@ packages:
     ref: main
     file: packages/base_packages/api.yaml
     refresh: 5min
+  safe_mode:
+    url: https://github.com/Cahlil-Togonon/Smart-iLAB
+    ref: main
+    file: packages/base_packages/safe_mode.yaml
+    refresh: 5min
   ota:
     url: https://github.com/Cahlil-Togonon/Smart-iLAB
     ref: main
     file: packages/base_packages/ota.yaml
+    refresh: 5min
+  logger:
+    url: https://github.com/Cahlil-Togonon/Smart-iLAB
+    ref: main
+    file: packages/base_packages/logger.yaml
+    refresh: 5min
+  web_server:
+    url: https://github.com/Cahlil-Togonon/Smart-iLAB
+    ref: main
+    file: packages/base_packages/web_server.yaml
+    refresh: 5min
+  binary_sensor:
+    url: https://github.com/Cahlil-Togonon/Smart-iLAB
+    ref: main
+    file: packages/base_packages/binary_sensor.yaml
     refresh: 5min
   sensor:
     url: https://github.com/Cahlil-Togonon/Smart-iLAB
