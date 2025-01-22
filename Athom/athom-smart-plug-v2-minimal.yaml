@@ -11,14 +11,90 @@ substitutions: # per device-specific substitutions (copy this only to the esphom
   sensor_accuracy_decimals: "3"
   # Current Limit in Amps. AU Plug = 10. IL, BR, EU, UK, US Plug = 16.
   current_limit : "16"
+  
+  wifi_ssid_1:          !secret wifi_ssid
+  wifi_ssid_1_password: !secret wifi_password
+  # wifi_bssid_1:         !secret wifi_bssid
+  wifi_ssid_2:          !secret uly_wifi_ssid
+  wifi_ssid_2_password: !secret uly_wifi_password
+  gateway:              !secret gateway           # Set this to the IP address of the router. Often ends with .1
+  subnet:               !secret subnet            # The subnet of the network
 
+  dns_domain: ".local"                            # Define the domain for this device. example: .local (device will appear as xxx-xxxxx.local in DNS/DHCP logs)
+  wifi_fast_connect: "false"                      # Enables faster network connections, with last connected SSID being connected to and no full scan for SSID being undertaken
+  ap_timeout: 1min
+  power_save_mode: none
+  reboot_timeout: 2min
+  flash_write_interval: 10min
+
+  timezone: ""                                    # Set timezone of the device. Can be entered in unix Country/Area format (i.e. "Australia/Sydney")
+  esp_wifi_scan_internal: true                    # set to false to show the full wifi scan results
+
+# esphome:
+#   name: ${device_id}
+#   build_path: ./build/${device_id}
+
+# ${platform}:
+#   board: ${board}
+
+# preferences:
+#   flash_write_interval: ${flash_write_interval}
 
 packages:
-  # device base packages
-  device_base:
+  wifi:
     url: https://github.com/Cahlil-Togonon/Smart-iLAB
     ref: main
-    file: packages/device_base.yaml
+    file: packages/base_packages/wifi.yaml
+    refresh: 5min
+  api:
+    url: https://github.com/Cahlil-Togonon/Smart-iLAB
+    ref: main
+    file: packages/base_packages/api.yaml
+    refresh: 5min
+  safe_mode:
+    url: https://github.com/Cahlil-Togonon/Smart-iLAB
+    ref: main
+    file: packages/base_packages/safe_mode.yaml
+    refresh: 5min
+  ota:
+    url: https://github.com/Cahlil-Togonon/Smart-iLAB
+    ref: main
+    file: packages/base_packages/ota.yaml
+    refresh: 5min
+  logger:
+    url: https://github.com/Cahlil-Togonon/Smart-iLAB
+    ref: main
+    file: packages/base_packages/logger.yaml
+    refresh: 5min
+  web_server:
+    url: https://github.com/Cahlil-Togonon/Smart-iLAB
+    ref: main
+    file: packages/base_packages/web_server.yaml
+    refresh: 5min
+  binary_sensor:
+    url: https://github.com/Cahlil-Togonon/Smart-iLAB
+    ref: main
+    file: packages/base_packages/binary_sensor.yaml
+    refresh: 5min
+  sensor:
+    url: https://github.com/Cahlil-Togonon/Smart-iLAB
+    ref: main
+    file: packages/base_packages/sensor.yaml
+    refresh: 5min
+  button:
+    url: https://github.com/Cahlil-Togonon/Smart-iLAB
+    ref: main
+    file: packages/base_packages/button.yaml
+    refresh: 5min
+  text_sensor:
+    url: https://github.com/Cahlil-Togonon/Smart-iLAB
+    ref: main
+    file: packages/base_packages/text_sensor.yaml
+    refresh: 5min
+  time:
+    url: https://github.com/Cahlil-Togonon/Smart-iLAB
+    ref: main
+    file: packages/base_packages/time.yaml
     refresh: 5min
 
 
