@@ -22,6 +22,16 @@ packages:
     refresh: 5min
 
 
+globals:
+  - id: total_energy
+    type: float
+    restore_value: yes
+    initial_value: '0.0'
+
+  - id: "relay_state"
+    type: std::string
+
+
 mqtt:
   id: mqtt_sensor
   broker: !secret broker_ip
@@ -131,6 +141,9 @@ esphome:
   on_boot: 
     then:
       - switch.turn_off: relay
+      - lambda: !lambda |-
+          id(relay_state) = "Off";
+          
 
 
 esp8266:
@@ -149,17 +162,6 @@ logger:
 uart:
   rx_pin: RX
   baud_rate: 4800
-
-
-globals:
-  - id: total_energy
-    type: float
-    restore_value: yes
-    initial_value: '0.0'
-
-  - id: "relay_state"
-    type: std::string
-    initial_value: "Off"
 
 
 binary_sensor:
