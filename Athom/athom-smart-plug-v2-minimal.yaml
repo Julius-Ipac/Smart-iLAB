@@ -28,7 +28,7 @@ substitutions: # per device-specific substitutions (copy this only to the esphom
   flash_write_interval: 10min
 
   timezone: ""                                    # Set timezone of the device. Can be entered in unix Country/Area format (i.e. "Australia/Sydney")
-
+  esp_wifi_scan_internal: "true"
 
 packages:
   wifi:
