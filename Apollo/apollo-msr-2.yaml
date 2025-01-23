@@ -695,7 +695,7 @@ script:
           id(mqtt_sensor).publish_json("apollo-msr-2-${device_id}/data", [=](JsonObject root){
 
           // date and time
-          root["timestamp"] = id(sntp_time).now().strftime("%Y-%m-%d %X");;
+          root["timestamp"] = id(sntp_time).now().strftime("%Y-%m-%d %X");
 
           // sensor data
           root["co2"] = id(co2).state;
