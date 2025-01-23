@@ -101,7 +101,7 @@ sensor:
   - platform: scd4x
     id: scd40
     co2:
-      name: "CO2"
+      #name: "CO2"
       id: co2
     automatic_self_calibration: false
     update_interval: 60s
@@ -112,7 +112,7 @@ sensor:
   - platform: dps310
     id: dps_310
     pressure:
-      name: "DPS310 Pressure"
+      #name: "DPS310 Pressure"
       id: pressure
     temperature:
       id: dps310_temperature
@@ -122,35 +122,35 @@ sensor:
   - platform: sen5x
     id: sen55
     pm_1_0:
-      name: "PM <1µm Weight concentration"
+      #name: "PM <1µm Weight concentration"
       id: pm_1_0
       accuracy_decimals: 2
     pm_2_5:
-      name: "PM <2.5µm Weight concentration"
+      #name: "PM <2.5µm Weight concentration"
       id: pm_2_5
       accuracy_decimals: 2
     pm_4_0:
-      name: "PM <4µm Weight concentration"
+      #name: "PM <4µm Weight concentration"
       id: pm_4_0
       accuracy_decimals: 2
     pm_10_0:
-      name: "PM <10µm Weight concentration"
+      #name: "PM <10µm Weight concentration"
       id: pm_10_0
       accuracy_decimals: 2
     temperature:
-      name: "SEN55 Temperature"
+      #name: "SEN55 Temperature"
       id: temperature
       filters:
         - lambda: return x - id(sen55_temperature_offset).state;
       accuracy_decimals: 2
     humidity:
-      name: "SEN55 Humidity"
+      #name: "SEN55 Humidity"
       id: humidity
       filters:
         - lambda: return x - id(sen55_humidity_offset).state;
       accuracy_decimals: 2
     voc:
-      name: "SEN55 VOC"
+      #name: "SEN55 VOC"
       id: sen55_voc
       algorithm_tuning:
         index_offset: 100
@@ -160,7 +160,7 @@ sensor:
         std_initial: 50
         gain_factor: 230
     nox:
-      name: "SEN55 NOX"
+      #name: "SEN55 NOX"
       id: nox
     acceleration_mode: low
     store_baseline: true
@@ -168,7 +168,7 @@ sensor:
     update_interval: 10s
 
   - platform: template
-    name: "PM 0.3 To 1 µm"
+    #name: "PM 0.3 To 1 µm"
     id: pm0_3_to_1
     disabled_by_default: true
     lambda: return id(pm_1_0).state;
@@ -178,7 +178,7 @@ sensor:
     update_interval: 10s
   
   - platform: template
-    name: "PM 1 To 2.5 µm"
+    #name: "PM 1 To 2.5 µm"
     id: pm1_to_2_5
     disabled_by_default: true
     lambda: return id(pm_2_5).state - id(pm_1_0).state;
@@ -188,7 +188,7 @@ sensor:
     update_interval: 10s
   
   - platform: template
-    name: "PM 2.5 To 4 µm"
+    #name: "PM 2.5 To 4 µm"
     id: pm2_5_to_4
     disabled_by_default: true
     lambda: return id(pm_4_0).state - id(pm_2_5).state;
@@ -198,7 +198,7 @@ sensor:
     update_interval: 10s
 
   - platform: template
-    name: "PM 4 To 10 µm"
+    #name: "PM 4 To 10 µm"
     id: pm4_to_10
     disabled_by_default: true
     lambda: return id(pm_10_0).state - id(pm_4_0).state;
