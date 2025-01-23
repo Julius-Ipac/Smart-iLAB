@@ -220,13 +220,18 @@ script:
     then:
       - lambda: !lambda |-
           id(mqtt_sensor).publish_json("${device_manufacturer}_${device_name}_${device_id}/data", [=](JsonObject root){
+          
+          // timestamp
           root["timestamp"] = id(sntp_time).now().strftime("%Y-%m-%d %X");
+
+          // sensor data
           root["current"] = id(current).state;
           root["energy"] = id(energy).state;
           root["power"] = id(power_sensor).state;
           root["total_daily_energy"] = id(total_daily_energy_sensor).state;
           root["total_energy"] = id(total_energy_sensor).state;
           root["voltage"] = id(voltage).state;
+          
           });
 
 
