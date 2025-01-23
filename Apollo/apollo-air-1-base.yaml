@@ -1,0 +1,21 @@
+substitutions: # per device-specific substitutions (copy this only to the esphome web ui)
+  static_ip:   add/ip/address/here       # set to the target ip address of the device
+  use_address: add/ip/address/here       # set to the current ip address of the device for OTA flashing
+  api_key: "add/api/key/here"
+
+  ota_password: !secret ota_password_apollo
+  log_level: DEBUG
+  web_server_ota: "false"                # enable ota in the web server.
+  esp_wifi_scan_internal: "true"         # set to false to show the full wifi scan results
+
+  device_manufacturer: apollo
+  device_name: msr_2
+  device_id: add/device/id/here
+
+
+packages:
+  apollo_msr_2:
+    url: https://github.com/Julius-Ipac/Smart-iLAB
+    ref: main
+    file: Apollo/apollo-msr-2.yaml
+    refresh: 5min
