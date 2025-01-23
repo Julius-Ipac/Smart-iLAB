@@ -1,7 +1,7 @@
 substitutions: # per device-specific substitutions (copy this only to the esphome web ui)
-  static_ip:   add_ip_address_here       # set to the target ip address of the device
-  use_address: add_ip_address_here       # set to the current ip address of the device for OTA flashing
-  api_key: "add_api_key_here"
+  static_ip:   AddIPAddressHere       # set to the target ip address of the device
+  use_address: AddIPAddressHere       # set to the current ip address of the device for OTA flashing
+  api_key: "AddAPIKeyHere"
 
   ota_password: !secret ota_password_apollo
   log_level: DEBUG
@@ -10,7 +10,7 @@ substitutions: # per device-specific substitutions (copy this only to the esphom
 
   device_manufacturer: apollo
   device_name: air_1
-  device_id: add_device_id_here
+  device_id: AddDeviceIDHere
 
 
 packages:
