@@ -1,7 +1,7 @@
 substitutions: # per device-specific substitutions (copy this only to the esphome web ui)
-  static_ip:   add/ip/address/here       # set to the target ip address of the device
-  use_address: add/ip/address/here       # set to the current ip address of the device for OTA flashing  
-  api_key: "add/api/key/here"
+  static_ip:   AddIPAddressHere       # set to the target ip address of the device
+  use_address: AddIPAddressHere       # set to the current ip address of the device for OTA flashing  
+  api_key: "AddAPIKeyHere"
 
   ota_password: !secret ota_password
   log_level: DEBUG
@@ -9,8 +9,8 @@ substitutions: # per device-specific substitutions (copy this only to the esphom
   esp_wifi_scan_internal: "true"         # set to false to show the full wifi scan results
 
   device_manufacturer: athom
-  device_name: smart-plug-v2
-  device_id: add/device/id/here
+  device_name: smart_plug_v2
+  device_id: AddDeviceIDHere
 
 
 packages:
