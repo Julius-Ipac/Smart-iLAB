@@ -9,13 +9,13 @@ substitutions: # per device-specific substitutions (copy this only to the esphom
   esp_wifi_scan_internal: "true"         # set to false to show the full wifi scan results
 
   device_manufacturer: apollo
-  device_name: msr_2
+  device_name: air_1
   device_id: add/device/id/here
 
 
 packages:
-  apollo_msr_2:
+  apollo_air_1:
     url: https://github.com/Julius-Ipac/Smart-iLAB
     ref: main
-    file: Apollo/apollo-msr-2.yaml
+    file: Apollo/apollo-air-1.yaml
     refresh: 5min
