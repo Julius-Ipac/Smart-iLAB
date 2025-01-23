@@ -42,7 +42,7 @@ mqtt:
   username: !secret broker_username
   password: !secret broker_password
   on_json_message: 
-    - topic: "${device_name}/${device_id}/light"
+    - topic: "${device_manufacturer}_${device_name}_${device_id}/light"
       then: 
         - if:
             condition: 
@@ -85,7 +85,7 @@ mqtt:
                     return 0;
             else:
               - light.turn_off: rgb_light
-    - topic: "${device_name}/${device_id}/buzzer"
+    - topic: "${device_manufacturer}_${device_name}_${device_id}/buzzer"
       then: 
         - rtttl.play: !lambda |-
             if(x.containsKey("mtttl_string"))
@@ -94,10 +94,6 @@ mqtt:
 
 
 sensor:
-  - platform: mqtt_subscribe
-    id: mqtt_subscribe_sensor
-    topic: apollo-air-1-87b074/commands
-
   - platform: scd4x
     id: scd40
     co2:
@@ -465,14 +461,14 @@ script:
   - id: mqtt_publish_sensor_data
     then:
       - lambda: |-
-          id(mqtt_sensor).publish_json("${device_manufacturer}-air-1-${device_id}/data", [=](JsonObject root){
+          id(mqtt_sensor).publish_json("${device_manufacturer}_${device_name}_${device_id}/data", [=](JsonObject root){
 
           // date and time
           root["timestamp"] = id(sntp_time).now().strftime("%Y-%m-%d %X");
 
           // sensor data
-          root["co2"] = id(co2).state;
-          root["pressure"] = id(pressure).state;
+          root["co2"]         = id(co2).state;
+          root["pressure"]    = id(pressure).state;
           root["temperature"] = id(temperature).state;
           root["humidity"]    = id(humidity).state;
           root["nox"]         = id(nox).state;
