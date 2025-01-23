@@ -8,8 +8,8 @@ substitutions: # per device-specific substitutions (copy this only to the esphom
   web_server_ota: "false"                # enable ota in the web server.
   esp_wifi_scan_internal: "true"         # set to false to show the full wifi scan results
 
-  device_manufacturer: apollo
-  device_name: air_1
+  device_manufacturer: athom
+  device_name: smart-plug-v2
   device_id: add/device/id/here
 
 
