@@ -42,7 +42,7 @@ mqtt:
   username: !secret broker_username
   password: !secret broker_password
   on_json_message: 
-    - topic: "${device_manufacturer}_${device_name}_${device_id}/light"
+    - topic: "apollo_air_1_${device_id}/light"
       then: 
         - if:
             condition: 
@@ -85,7 +85,7 @@ mqtt:
                     return 0;
             else:
               - light.turn_off: rgb_light
-    - topic: "${device_manufacturer}_${device_name}_${device_id}/buzzer"
+    - topic: "apollo_air_1_${device_id}/buzzer"
       then: 
         - rtttl.play: !lambda |-
             if(x.containsKey("mtttl_string"))
@@ -461,7 +461,7 @@ script:
   - id: mqtt_publish_sensor_data
     then:
       - lambda: |-
-          id(mqtt_sensor).publish_json("${device_manufacturer}_${device_name}_${device_id}/data", [=](JsonObject root){
+          id(mqtt_sensor).publish_json("apollo_air_1_${device_id}/data", [=](JsonObject root){
 
           // date and time
           root["timestamp"] = id(sntp_time).now().strftime("%Y-%m-%d %X");
