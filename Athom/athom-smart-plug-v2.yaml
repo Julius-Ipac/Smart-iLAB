@@ -39,7 +39,7 @@ mqtt:
   username: !secret broker_username
   password: !secret broker_password
   on_json_message: 
-    topic: "${device_manufacturer}_${device_name}_${device_id}/relay"
+    topic: "athom_smart_plug_v2_${device_id}/relay"
     then: 
        - if: 
           condition: 
@@ -219,7 +219,7 @@ script:
   - id: mqtt_publish_sensor_data
     then:
       - lambda: !lambda |-
-          id(mqtt_sensor).publish_json("${device_manufacturer}_${device_name}_${device_id}/data", [=](JsonObject root){
+          id(mqtt_sensor).publish_json("athom_smart_plug_v2_${device_id}/data", [=](JsonObject root){
           
           // timestamp
           root["timestamp"] = id(sntp_time).now().strftime("%Y-%m-%d %X");
