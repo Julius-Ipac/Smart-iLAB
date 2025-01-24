@@ -16,6 +16,5 @@ packages:
     url: https://github.com/Julius-Ipac/Smart-iLAB
     ref: main
     file: Athom/athom-smart-plug-v2-super-minimal.yaml
-    #file: Athom/athom-smart-plug-v2-minimal.yaml
     #file: Athom/athom-smart-plug-v2.yaml
     refresh: 5min
