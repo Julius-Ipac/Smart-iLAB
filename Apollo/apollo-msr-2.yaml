@@ -56,6 +56,7 @@ mqtt:
   port: !secret broker_port
   username: !secret broker_username
   password: !secret broker_password
+  topic_prefix: null
   on_json_message: 
     - topic: "apollo_msr_2_${device_id}/light"
       then: 
