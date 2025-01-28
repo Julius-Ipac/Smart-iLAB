@@ -39,6 +39,7 @@ mqtt:
   username: !secret broker_username
   password: !secret broker_password
   topic_prefix: null
+  reboot_timeout: 1min
   on_json_message: 
     topic: "athom_smart_plug_v2_${device_id}/relay"
     then: 
