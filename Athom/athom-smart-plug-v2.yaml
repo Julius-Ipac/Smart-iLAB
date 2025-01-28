@@ -144,7 +144,7 @@ esphome:
     then:
       - switch.turn_off: relay
       - lambda: !lambda |-
-          id() = "Off";
+          id(relay_state) = "Off";
           
 
 
