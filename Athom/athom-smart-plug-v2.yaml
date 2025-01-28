@@ -143,7 +143,7 @@ esphome:
     then:
       - switch.turn_off: relay
       - lambda: !lambda |-
-          id(relay_state) = "Off";
+          id() = "Off";
           
 
 
@@ -232,6 +232,9 @@ script:
           root["total_daily_energy"] = id(total_daily_energy_sensor).state;
           root["total_energy"] = id(total_energy_sensor).state;
           root["voltage"] = id(voltage).state;
+
+          // relay data
+          root["state"] = id(relay_state);
           
           });
 
