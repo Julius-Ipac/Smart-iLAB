@@ -322,6 +322,7 @@ output:
     id: buzzer
 rtttl:
  output: buzzer
+ gain: 75%
 
 
 binary_sensor:
