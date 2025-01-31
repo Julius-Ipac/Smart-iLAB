@@ -87,13 +87,6 @@ mqtt:
                     return 0;
             else:
               - light.turn_off: rgb_light
-    - topic: "apollo_air_1_${device_id}/buzzer"
-      then: 
-        - rtttl.play: 
-            rtttl: !lambda |-
-                      if(x.containsKey("mtttl_string"))
-                      return x["mtttl_string"];
-                      return "";
 
 
 sensor:
@@ -313,16 +306,6 @@ number:
     update_interval: never
     step: 0.1
     mode: box
-
-
-# Buzzer
-output:
-  - platform: ledc
-    pin: GPIO10
-    id: buzzer
-rtttl:
- output: buzzer
- gain: 75%
 
 
 binary_sensor:
