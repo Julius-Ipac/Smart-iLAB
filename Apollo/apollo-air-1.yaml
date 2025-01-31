@@ -89,10 +89,11 @@ mqtt:
               - light.turn_off: rgb_light
     - topic: "apollo_air_1_${device_id}/buzzer"
       then: 
-        - rtttl.play: !lambda |-
-            if(x.containsKey("mtttl_string"))
-            return x["mtttl_string"];
-            return "";
+        - rtttl.play: 
+            rtttl: !lambda |-
+                      if(x.containsKey("mtttl_string"))
+                      return x["mtttl_string"];
+                      return "";
 
 
 sensor:
