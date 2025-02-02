@@ -308,6 +308,15 @@ number:
     mode: box
 
 
+# Buzzer
+output:
+  - platform: ledc
+    pin: GPIO10
+    id: buzzer
+rtttl:
+ output: buzzer
+
+
 binary_sensor:
   - platform: status
     name: Online
