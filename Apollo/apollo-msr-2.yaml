@@ -45,10 +45,10 @@ globals:
     type: std::string
   - id: "rgb_light_values"
     restore_value: no
-    type: std::map<std::string, int>
+    type: std::map<std::string, float>
   - id: "rgb_light_brightness"
     restore_value: no
-    type: int
+    type: float
 
 mqtt:
   id: mqtt_sensor
