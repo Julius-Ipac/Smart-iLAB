@@ -1,0 +1,19 @@
+substitutions: # per device-specific substitutions (copy this only to the esphome web ui)
+  static_ip:   AddIPAddressHere       # set to the target ip address of the device
+  use_address: AddIPAddressHere       # set to the current ip address of the device for OTA flashing
+  api_key: "AddAPIKeyHere"
+
+  ota_password: !secret ota_password_apollo
+  log_level: DEBUG
+  web_server_ota: "false"                # enable ota in the web server.
+  esp_wifi_scan_internal: "true"         # set to false to show the full wifi scan results
+
+  device_id: AddDeviceIDHere
+
+
+packages:
+  airgradient_one:
+    url: https://github.com/Julius-Ipac/Smart-iLAB
+    ref: main
+    file: AirGradient/airgradient-one.yaml
+    refresh: 5min
