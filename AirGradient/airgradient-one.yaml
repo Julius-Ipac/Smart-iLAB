@@ -1,0 +1,164 @@
+# AirGradient ONE - Board v9
+# https://www.airgradient.com/open-airgradient/instructions/overview/
+
+substitutions:
+  name: "ag-one"
+  friendly_name: "AG One"
+  config_version: 2.0.1
+
+
+packages:
+  # device base packages
+  device_base:
+    url: https://github.com/Cahlil-Togonon/Smart-iLAB
+    ref: main
+    file: packages/device_base.yaml
+    refresh: 5min
+
+  # Air Gradient packages from MallocArray
+  board: github://MallocArray/airgradient_esphome/packages/airgradient_esp32-c3_board.yaml
+  pm_2.5: github://MallocArray/airgradient_esphome/packages/sensor_pms5003.yaml
+  co2: github://MallocArray/airgradient_esphome/packages/sensor_s8.yaml
+  temp_humidity: github://MallocArray/airgradient_esphome/packages/sensor_sht40.yaml
+  tvoc: github://MallocArray/airgradient_esphome/packages/sensor_sgp41.yaml
+  display: github://MallocArray/airgradient_esphome/packages/display_sh1106_multi_page.yaml
+  led: github://MallocArray/airgradient_esphome/packages/led.yaml
+  led_co2: github://MallocArray/airgradient_esphome/packages/led_co2.yaml
+  airgradient_api: github://MallocArray/airgradient_esphome/packages/airgradient_api_esp32-c3.yaml
+  hardware_watchdog: github://MallocArray/airgradient_esphome/packages/watchdog.yaml
+  config_button: github://MallocArray/airgradient_esphome/packages/config_button.yaml
+  wifi_sensor: github://MallocArray/airgradient_esphome/packages/sensor_wifi.yaml
+  uptime: github://MallocArray/airgradient_esphome/packages/sensor_uptime.yaml
+  safe_mode: github://MallocArray/airgradient_esphome/packages/switch_safe_mode.yaml
+
+
+globals:
+  - id: "led_strip_state"
+    restore_value: no
+    type: std::string
+  - id: "led_strip_values"
+    restore_value: no
+    type: std::map<std::string, float>
+  - id: "led_strip_brightness"
+    restore_value: no
+    type: float
+
+
+esphome:
+  name: "${name}"
+  friendly_name: "${friendly_name}"
+  comment: "${friendly_name}"
+  name_add_mac_suffix: true             # recommended: use mac address as differentiator
+
+  on_boot:
+  - priority: -10
+    then:
+      - lambda: !lambda |-
+          id(led_strip_state) = "Off";
+          id(led_strip_values)["r"] = 0;
+          id(led_strip_values)["g"] = 0;
+          id(led_strip_values)["b"] = 0;
+          id(led_strip_brightness) = 0;
+      - light.turn_off: led_strip
+
+
+binary_sensor:
+  - id: !extend config_button
+    pin:
+      ignore_strapping_warning: true  # Acknowledging that this is a strapping pin and should not have external pullup/down resistors  https://esphome.io/guides/faq.html#why-am-i-getting-a-warning-about-strapping-pins
+
+
+mqtt:
+  id: mqtt_sensor
+  broker: !secret broker_ip
+  port: !secret broker_port
+  username: !secret broker_username
+  password: !secret broker_password
+  
+  topic_prefix: null  # removes /state and /command subscriptions
+  reboot_timeout: 1min
+  
+  on_json_message: 
+    - topic: "airgradient_one_${device_id}/light"
+      then: 
+        - if:
+            condition: 
+              lambda: !lambda |-
+                if(x.containsKey("state")){
+                if(x["state"] == "On"){
+                id(led_strip_state) = "On";
+                return true;
+                }
+                }
+                id(led_strip_state) = "Off";
+                return false;
+            then:
+              - light.turn_on: 
+                  id: led_strip
+
+                  red: !lambda |-
+                    if(x.containsKey("color")){
+                    if(x["color"].containsKey("r")){
+                    id(led_strip_values)["r"] = x["color"]["r"];
+                    return x["color"]["r"];}}
+                    return 0;
+                  green: !lambda |-
+                    if(x.containsKey("color")){
+                    if(x["color"].containsKey("g")){
+                    id(led_stript_values)["g"] = x["color"]["g"];
+                    return x["color"]["g"];}}
+                    return 0;
+                  blue: !lambda |-
+                    if(x.containsKey("color")){
+                    if(x["color"].containsKey("b")){
+                    id(led_strip_values)["b"] = x["color"]["b"];
+                    return x["color"]["b"];}}
+                    return 0;
+                  brightness: !lambda |-
+                    if(x.containsKey("brightness")){
+                    id(led_strip_brightness) = x["brightness"];
+                    return x["brightness"];
+                    }
+                    return 0;
+            else:
+              - light.turn_off: led_strip
+
+
+# script to publish MQTT messages
+script:
+  - id: mqtt_publish_sensor_data
+    then:
+      - lambda: |-
+          id(mqtt_sensor).publish_json("airgradient_one_${device_id}/data", [=](JsonObject root){
+
+          // date and time
+          root["timestamp"] = id(sntp_time).now().strftime("%Y-%m-%d %X");
+
+          // sensor data
+          root["co2"]         = id(co2).state;
+          root["temperature"] = id(temp).state;
+          root["humidity"]    = id(humidity).state;
+          root["nox"]         = id(nox).state;
+          root["voc"]         = id(voc).state;
+          root["pm_0_3"]      = id(pm_0_3um).state;
+          root["pm_1_0"]      = id(pm_1_0).state;
+          root["pm_2_5"]      = id(pm_2_5).state;
+          root["pm_10_0"]     = id(pm_10_0).state;
+
+          // led strip data
+          root["state"] = id(led_strip_state);
+          root["r"] = id(led_strip_values)["r"];
+          root["g"] = id(led_strip_values)["g"];
+          root["b"] = id(led_strip_values)["b"];
+          root["brightness"] = id(led_strip_brightness);
+
+          });
+
+
+# execute mqtt_publish_sensor_data every 10 seconds
+time:
+  - platform: sntp
+    on_time: 
+      seconds: /10
+      then: 
+        - script.execute: mqtt_publish_sensor_data
