@@ -1,6 +1,5 @@
 packages:
-  # device base packages
-  device_base:
+  air-1:
     url: https://github.com/Cahlil-Togonon/Smart-iLAB
     ref: main
     file: Apollo/apollo-air-1.yaml
