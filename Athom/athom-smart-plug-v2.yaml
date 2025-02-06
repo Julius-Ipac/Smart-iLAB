@@ -1,6 +1,5 @@
 packages:
-  # device base packages
-  device_base:
+  smart-plug-v2:
     url: https://github.com/Cahlil-Togonon/Smart-iLAB
     ref: main
     file: packages/device_base.yaml
@@ -47,7 +46,7 @@ esphome:
     then:
       - lambda: !lambda |-
           id(relay_state) = "Off";
-
+  
       - switch.turn_off: relay
 
 
