@@ -89,6 +89,7 @@ esphome:
           id(rgb_light_values)["g"] = 0;
           id(rgb_light_values)["b"] = 0;
           id(rgb_light_brightness) = 0;
+      - light.turn_off: rgb_light
 
 
 script:
