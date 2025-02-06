@@ -83,6 +83,7 @@ mqtt:
 esphome:
   on_boot:
   - priority: -10
+    then:
       - lambda: !lambda |-
           id(rgb_light_state) = "Off";
           id(rgb_light_values)["r"] = 0;
