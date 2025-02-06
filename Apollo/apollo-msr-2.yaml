@@ -102,7 +102,7 @@ script:
           root["timestamp"] = id(sntp_time).now().strftime("%Y-%m-%d %X");
 
           // sensor data
-          root["co2"] = id("co2").state;
+          root["co2"] = id(co2).state;
           root["pressure"]    = id(dps310pressure).state;
           root["temperature"] = id(dps310temperature).state;
           root["light"]    = id(ltr390light).state;
