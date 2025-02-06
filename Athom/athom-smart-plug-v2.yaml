@@ -42,7 +42,8 @@ mqtt:
 
 
 esphome:
-  on_boot: 
+  on_boot:
+  - priority: -10
     then:
       - lambda: !lambda |-
           id(relay_state) = "Off";
