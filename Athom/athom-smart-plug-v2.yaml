@@ -2,7 +2,7 @@ packages:
   smart-plug-v2:
     url: https://github.com/Cahlil-Togonon/Smart-iLAB
     ref: main
-    file: packages/device_base.yaml
+    file: Athom/athom-smart-plug-v2.yaml
     refresh: 5min
 
 
