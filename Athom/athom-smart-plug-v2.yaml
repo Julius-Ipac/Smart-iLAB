@@ -59,6 +59,14 @@ mqtt:
             - switch.turn_on: relay
           else: 
             - switch.turn_off: relay
+  
+  birth_message: 
+    topic: "athom_smart_plug_v2_${device_id}/data"
+    payload: "athom_smart_plug_v2_${device_id} online"
+  
+  will_message: 
+    topic: "athom_smart_plug_v2_${device_id}/data"
+    payload: "athom_smart_plug_v2_${device_id} offline"
 
 
 sensor:
