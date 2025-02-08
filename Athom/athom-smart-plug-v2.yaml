@@ -52,13 +52,73 @@ esphome:
 
 
 sensor:
-  - platform: !extend cse7766
+  - platform: cse7766
     current:
+      name: "Current"
       id: current
+      accuracy_decimals: ${sensor_accuracy_decimals}
+      filters:
+        - throttle_average: ${sensor_update_interval}
+        # - lambda: if (x < 0.060) return 0.0; else return x;   #For the chip will report less than 3w power when no load is connected
+      on_value_range:
+        - above: ${current_limit}
+          then:
+            - switch.turn_off: relay
     voltage:
+      name: "Voltage"
       id: voltage
-  - platform: !extend total_daily_energy
+      accuracy_decimals: ${sensor_accuracy_decimals}
+      filters:
+        - throttle_average: ${sensor_update_interval}
+
+    power:
+      name: "Power"
+      id: power_sensor
+      accuracy_decimals: ${sensor_accuracy_decimals}
+      filters:
+        - throttle_average: ${sensor_update_interval}
+        # - lambda: if (x < 3.0) return 0.0; else return x;    #For the chip will report less than 3w power when no load is connected
+
+    energy:
+      name: "Energy"
+      id: energy
+      accuracy_decimals: ${sensor_accuracy_decimals}
+      unit_of_measurement: kWh
+      filters:
+        - throttle: ${sensor_update_interval}
+        # Multiplication factor from W to kW is 0.001
+        - multiply: 0.001
+      on_value:
+        then:
+          - lambda: |-
+              static float previous_energy_value = 0.0;
+              float current_energy_value = id(energy).state;
+              id(total_energy) += current_energy_value - previous_energy_value;
+              previous_energy_value = current_energy_value;
+              id(total_energy_sensor).update();
+
+  - platform: template
+    name: "Total Energy"
+    id: total_energy_sensor
+    unit_of_measurement: kWh
+    device_class: "energy"
+    state_class: "total_increasing"
+    icon: "mdi:lightning-bolt"
+    accuracy_decimals: ${sensor_accuracy_decimals}
+    lambda: |-
+      return id(total_energy);
+    update_interval: never
+
+  - platform: total_daily_energy
+    name: "Total Daily Energy"
     id: total_daily_energy_sensor
+    restore: true
+    power_id: power_sensor
+    unit_of_measurement: kWh
+    accuracy_decimals: ${sensor_accuracy_decimals}
+    filters:
+      - multiply: 0.001
+
 
 script:
   - id: mqtt_publish_sensor_data
