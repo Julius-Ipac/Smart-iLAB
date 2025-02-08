@@ -95,7 +95,7 @@ sensor:
     id: scd40
     co2:
       name: "CO2"
-      id: "co2"
+      id: co2
     automatic_self_calibration: false
     update_interval: 60s
     measurement_mode: "periodic"
