@@ -439,7 +439,6 @@ number:
     mode: box
 
 
-# Script to publish MQTT messages
 script:
   - id: mqtt_publish_sensor_data
     then:
