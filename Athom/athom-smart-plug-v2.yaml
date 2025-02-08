@@ -190,6 +190,17 @@ switch:
 
 
 esphome:
+  name: "${name}"
+  friendly_name: "${friendly_name}"
+  area: "${room}"
+  name_add_mac_suffix: true
+  
+  project:
+    name: "${project_name}"
+    version: "${project_version}"
+    
+  min_version: 2024.2.1
+  
   on_boot:
   - priority: -10
     then:
