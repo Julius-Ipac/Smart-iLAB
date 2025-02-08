@@ -114,6 +114,14 @@ mqtt:
             return x["mtttl_string"];
             return "";
 
+  birth_message: 
+    topic: "apollo_msr_2_${device_id}/data"
+    payload: "apollo_msr_2_${device_id} online"
+  
+  will_message: 
+    topic: "apollo_msr_2_${device_id}/data"
+    payload: "apollo_msr_2_${device_id} offline"
+
 
 sensor:
   - platform: scd4x
