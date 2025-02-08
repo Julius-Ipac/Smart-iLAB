@@ -52,12 +52,12 @@ esphome:
 
 
 sensor:
-  - platform: cse7766
+  - platform: !extend cse7766
     current:
       id: current
     voltage:
       id: voltage
-  - platform: total_daily_energy
+  - platform: !extend total_daily_energy
     id: total_daily_energy_sensor
 
 script:
