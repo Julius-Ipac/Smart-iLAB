@@ -89,6 +89,18 @@ mqtt:
             else:
               - light.turn_off: rgb_light
 
+  birth_message: 
+    topic: "apollo_air_1_${device_id}/data"
+    payload: |-
+      root["timestamp"] = id(sntp_time).now().strftime("%Y-%m-%d %X");
+      root["status"] = "Online";
+  will_message: 
+    topic: "apollo_air_1_${device_id}/data"
+    payload: |-
+      root["timestamp"] = id(sntp_time).now().strftime("%Y-%m-%d %X");
+      root["status"] = "Offline";
+    
+
 
 sensor:
   - platform: scd4x
