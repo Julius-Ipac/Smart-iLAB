@@ -99,7 +99,6 @@ mqtt:
     payload: |-
       root["timestamp"] = id(sntp_time).now().strftime("%Y-%m-%d %X");
       root["status"] = "Offline";
-    
 
 
 sensor:
