@@ -91,13 +91,11 @@ mqtt:
 
   birth_message: 
     topic: "apollo_air_1_${device_id}/data"
-    payload: !lambda |-
-      return "apollo_air_1_${device_id} online at " + id(sntp_time).now().strftime("%Y-%m-%d %X");
+    payload: "apollo_air_1_${device_id} online"
   
   will_message: 
     topic: "apollo_air_1_${device_id}/data"
-    payload: !lambda |-
-      return "apollo_air_1_${device_id} offline at " + id(sntp_time).now().strftime("%Y-%m-%d %X");
+    payload: "apollo_air_1_${device_id} offline"
 
 
 sensor:
