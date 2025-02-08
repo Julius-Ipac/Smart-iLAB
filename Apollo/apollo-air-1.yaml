@@ -91,14 +91,13 @@ mqtt:
 
   birth_message: 
     topic: "apollo_air_1_${device_id}/data"
-    payload: |-
-      root["timestamp"] = id(sntp_time).now().strftime("%Y-%m-%d %X");
-      root["status"] = "Online";
+    payload: !lambda |-
+      return "apollo_air_1_${device_id} online at " + id(sntp_time).now().strftime("%Y-%m-%d %X");
+  
   will_message: 
     topic: "apollo_air_1_${device_id}/data"
-    payload: |-
-      root["timestamp"] = id(sntp_time).now().strftime("%Y-%m-%d %X");
-      root["status"] = "Offline";
+    payload: !lambda |-
+      return "apollo_air_1_${device_id} offline at " + id(sntp_time).now().strftime("%Y-%m-%d %X");
 
 
 sensor:
