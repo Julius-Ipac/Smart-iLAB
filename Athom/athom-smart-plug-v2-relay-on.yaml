@@ -207,7 +207,7 @@ esphome:
   - priority: -10
     then:
       - lambda: !lambda |-
-          id(relay_state) = "Off";
+          id(relay_state) = "On";
   
       - switch.turn_on: relay
 
