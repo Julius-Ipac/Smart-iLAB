@@ -44,30 +44,6 @@ globals:
     type: float
 
 
-esphome:
-  name: "${name}"
-  friendly_name: "${friendly_name}"
-  comment: "${friendly_name}"
-  name_add_mac_suffix: true             # recommended: use mac address as differentiator
-
-  on_boot:
-  - priority: -10
-    then:
-      - lambda: !lambda |-
-          id(led_strip_state) = "Off";
-          id(led_strip_values)["r"] = 0;
-          id(led_strip_values)["g"] = 0;
-          id(led_strip_values)["b"] = 0;
-          id(led_strip_brightness) = 0;
-      - light.turn_off: led_strip
-
-
-binary_sensor:
-  - id: !extend config_button
-    pin:
-      ignore_strapping_warning: true  # Acknowledging that this is a strapping pin and should not have external pullup/down resistors  https://esphome.io/guides/faq.html#why-am-i-getting-a-warning-about-strapping-pins
-
-
 mqtt:
   id: mqtt_sensor
   broker: !secret broker_ip
@@ -105,7 +81,7 @@ mqtt:
                   green: !lambda |-
                     if(x.containsKey("color")){
                     if(x["color"].containsKey("g")){
-                    id(led_stript_values)["g"] = x["color"]["g"];
+                    id(led_strip_values)["g"] = x["color"]["g"];
                     return x["color"]["g"];}}
                     return 0;
                   blue: !lambda |-
@@ -124,7 +100,30 @@ mqtt:
               - light.turn_off: led_strip
 
 
-# script to publish MQTT messages
+esphome:
+  name: "${name}"
+  friendly_name: "${friendly_name}"
+  comment: "${friendly_name}"
+  name_add_mac_suffix: true             # recommended: use mac address as differentiator
+
+  on_boot:
+  - priority: -10
+    then:
+      - lambda: !lambda |-
+          id(led_strip_state) = "Off";
+          id(led_strip_values)["r"] = 0;
+          id(led_strip_values)["g"] = 0;
+          id(led_strip_values)["b"] = 0;
+          id(led_strip_brightness) = 0;
+      - light.turn_off: led_strip
+
+
+binary_sensor:
+  - id: !extend config_button
+    pin:
+      ignore_strapping_warning: true  # Acknowledging that this is a strapping pin and should not have external pullup/down resistors  https://esphome.io/guides/faq.html#why-am-i-getting-a-warning-about-strapping-pins
+
+
 script:
   - id: mqtt_publish_sensor_data
     then:
