@@ -205,9 +205,9 @@ esphome:
   - priority: -10
     then:
       - lambda: !lambda |-
-          id(relay_state) = "Off";
+          id(relay_state) = "On";
   
-      - switch.turn_off: relay
+      - switch.turn_on: relay
 
 
 esp8266:
