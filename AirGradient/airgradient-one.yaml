@@ -99,6 +99,14 @@ mqtt:
             else:
               - light.turn_off: led_strip
 
+  birth_message: 
+    topic: "airgradient_one_${device_id}/data"
+    payload: "airgradient_one_${device_id} online"
+  
+  will_message: 
+    topic: "airgradient_one_${device_id}/data"
+    payload: "airgradient_one_${device_id} offline"
+
 
 esphome:
   name: "${name}"
