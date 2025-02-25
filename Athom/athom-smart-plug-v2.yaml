@@ -26,9 +26,6 @@ globals:
     type: float
     restore_value: yes
     initial_value: '0.0'
-    
-  - id: "relay_state"
-    type: std::string
 
 
 mqtt:
@@ -44,21 +41,12 @@ mqtt:
   on_json_message: 
     topic: "athom_smart_plug_v2_${device_id}/relay"
     then: 
-       - if: 
-          condition: 
-            lambda: !lambda |-
-              if(x.containsKey("state")){
-              if(x["state"] == "On"){
-              id(relay_state) = "On";
-              return true;
-              }
-              }
-              id(relay_state) = "Off";
-              return false;
-          then:
-            - switch.turn_on: relay
-          else: 
-            - switch.turn_off: relay
+       - lambda: !lambda |-
+           if(x["state"] == "On"){
+           id(relay).turn_on();
+           } else {
+           id(relay).turn_off();
+           }
   
   birth_message: 
     topic: "athom_smart_plug_v2_${device_id}/data"
@@ -204,9 +192,6 @@ esphome:
   on_boot:
   - priority: -10
     then:
-      - lambda: !lambda |-
-          id(relay_state) = "On";
-  
       - switch.turn_on: relay
 
 
@@ -246,7 +231,7 @@ script:
           root["voltage"] = id(voltage).state;
 
           // relay data
-          root["state"] = id(relay_state);
+          root["state"] = id(relay).state;
           
           });
 
