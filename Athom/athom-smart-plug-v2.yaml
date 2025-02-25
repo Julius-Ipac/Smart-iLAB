@@ -214,13 +214,13 @@ uart:
 
 
 script:
-  - id: mqtt_publish_sensor_data
+  - id: mqtt_publish_data
     then:
       - lambda: !lambda |-
           id(mqtt_sensor).publish_json("athom_smart_plug_v2_${device_id}/data", [=](JsonObject root){
           
           // timestamp
-          root["timestamp"] = id(sntp_time).now().strftime("%Y-%m-%d %X");
+          root["timestamp"] = id(sntp_time).now().strftime("%Y-%m-%d %X%z");
 
           // sensor data
           root["current"] = id(current).state;
@@ -241,4 +241,4 @@ time:
     on_time: 
       seconds: /10
       then: 
-        - script.execute: mqtt_publish_sensor_data
+        - script.execute: mqtt_publish_data
