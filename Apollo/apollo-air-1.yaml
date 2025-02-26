@@ -28,19 +28,23 @@ globals:
     restore_value: no
     type: 'bool'
     initial_value: 'false'
-  - id: previous_state
+  - id: previous_light_state
     restore_value: no
     type: 'bool'
     initial_value: 'false'
-  - id: previous_r
+  - id: previous_light_r
     restore_value: no
     type: 'float'
     initial_value: '0'
-  - id: previous_g
+  - id: previous_light_g
     restore_value: no
     type: 'float'
     initial_value: '0'
-  - id: previous_b
+  - id: previous_light_b
+    restore_value: no
+    type: 'float'
+    initial_value: '0'
+  - id: previous_light_brightness
     restore_value: no
     type: 'float'
     initial_value: '0'
@@ -467,24 +471,24 @@ script:
   - id: mqtt_publish_data_on_actuator_state_change
     then:
       - lambda: !lambda |-
-          if(id(previous_state) != id(rgb_light).current_values.is_on()){
-            id(previous_state) = id(rgb_light).current_values.is_on();
+          if(id(previous_light_state) != id(rgb_light).current_values.is_on()){
+            id(previous_light_state) = id(rgb_light).current_values.is_on();
             id(actuator_state_changed) = true;
           }
-          if(id(previous_r) != id(rgb_light).current_values.get_red()){
-            id(previous_r) = id(rgb_light).current_values.get_red();
+          if(id(previous_light_r) != id(rgb_light).current_values.get_red()){
+            id(previous_light_r) = id(rgb_light).current_values.get_red();
             id(actuator_state_changed) = true;
           }
-          if(id(previous_g) != id(rgb_light).current_values.get_green()){
-            id(previous_g) = id(rgb_light).current_values.get_green();
+          if(id(previous_light_g) != id(rgb_light).current_values.get_green()){
+            id(previous_light_g) = id(rgb_light).current_values.get_green();
             id(actuator_state_changed) = true;
           }
-          if(id(previous_b) != id(rgb_light).current_values.get_blue()){
-            id(previous_b) = id(rgb_light).current_values.get_blue();
+          if(id(previous_light_b) != id(rgb_light).current_values.get_blue()){
+            id(previous_light_b) = id(rgb_light).current_values.get_blue();
             id(actuator_state_changed) = true;
           }
-          if(id(previous_brightness) != id(rgb_light).current_values.get_brightness()){
-            id(previous_brightness) = id(rgb_light).current_values.get_brightness();
+          if(id(previous_light_brightness) != id(rgb_light).current_values.get_brightness()){
+            id(previous_light_brightness) = id(rgb_light).current_values.get_brightness();
             id(actuator_state_changed) = true;
           }
 
