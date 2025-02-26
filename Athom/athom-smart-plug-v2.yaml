@@ -27,6 +27,15 @@ globals:
     restore_value: yes
     initial_value: '0.0'
 
+  - id: actuator_state_changed
+    restore_value: no
+    type: 'bool'
+    initial_value: 'false'
+  - id: previous_relay_state
+    restore_value: no
+    type: 'bool'
+    initial_value: 'false'
+
 
 mqtt:
   id: mqtt_sensor
@@ -234,11 +243,33 @@ script:
           root["state"] = id(relay).state;
           
           });
+          
+    # publish sensor and actuator data if an actuator's state changed
+    - id: mqtt_publish_data_on_actuator_state_change
+      then:
+        - lambda: !lambda |-
+            if(id(previous_relay_state) != id(relay).state){
+              id(previous_state) = id(relay).state;
+              id(actuator_state_changed) = true;
+            }
+  
+            if(send == true){
+              id(mqtt_publish_data).execute()
+            }
+            
+            id(actuator_state_changed) = false;
 
 
 time:
+  # every 10 seconds, publish sensor and actuator data
   - platform: sntp
     on_time: 
       seconds: /10
       then: 
         - script.execute: mqtt_publish_data
+  # every second, check if an actuator's state changed
+  - platform: sntp
+    on_time: 
+      seconds: /1,/2,/3,/4,/5,/6,/7,/8,/9,/10
+      then: 
+        - script.execute: mqtt_publish_data_on_actuator_state_change
