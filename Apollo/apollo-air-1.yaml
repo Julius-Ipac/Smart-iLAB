@@ -18,20 +18,32 @@ globals:
     type: int
     restore_value: no
     initial_value: '0'
+
   - id: button_press_timestamp
     restore_value: no
     type: uint32_t
     initial_value: '0'
 
-  - id: "rgb_light_state"
+  - id: previous_state
     restore_value: no
-    type: std::string
-  - id: "rgb_light_values"
+    type: 'bool'
+    initial_value: 'false'
+  - id: previous_r
     restore_value: no
-    type: std::map<std::string, float>
-  - id: "rgb_light_brightness"
+    type: 'float'
+    initial_value: '0'
+  - id: previous_g
     restore_value: no
-    type: float
+    type: 'float'
+    initial_value: '0'
+  - id: previous_b
+    restore_value: no
+    type: 'float'
+    initial_value: '0'
+  - id: previous_brightness
+    restore_value: no
+    type: 'float'
+    initial_value: '0'
 
 
 mqtt:
@@ -45,49 +57,20 @@ mqtt:
   reboot_timeout: 1min
   
   on_json_message: 
+    # rgb led light control
     - topic: "apollo_air_1_${device_id}/light"
       then: 
-        - if:
-            condition: 
-              lambda: !lambda |-
-                if(x.containsKey("state")){
-                if(x["state"] == "On"){
-                id(rgb_light_state) = "On";
-                return true;
-                }
-                }
-                id(rgb_light_state) = "Off";
-                return false;
-            then:
-              - light.turn_on: 
-                  id: rgb_light
-
-                  red: !lambda |-
-                    if(x.containsKey("color")){
-                    if(x["color"].containsKey("r")){
-                    id(rgb_light_values)["r"] = x["color"]["r"];
-                    return x["color"]["r"];}}
-                    return 0;
-                  green: !lambda |-
-                    if(x.containsKey("color")){
-                    if(x["color"].containsKey("g")){
-                    id(rgb_light_values)["g"] = x["color"]["g"];
-                    return x["color"]["g"];}}
-                    return 0;
-                  blue: !lambda |-
-                    if(x.containsKey("color")){
-                    if(x["color"].containsKey("b")){
-                    id(rgb_light_values)["b"] = x["color"]["b"];
-                    return x["color"]["b"];}}
-                    return 0;
-                  brightness: !lambda |-
-                    if(x.containsKey("brightness")){
-                    id(rgb_light_brightness) = x["brightness"];
-                    return x["brightness"];
-                    }
-                    return 0;
-            else:
-              - light.turn_off: rgb_light
+        - lambda: !lambda |-
+            if(x["state"]=="On"){
+              id(rgb_light).current_values.set_state(static_cast<float>(1));
+            } else {
+              id(rgb_light).current_values.set_state(static_cast<float>(0));
+            }
+            // values must be between 0 and 1
+            id(rgb_light).current_values.set_red(x["color"]["r"]);
+            id(rgb_light).current_values.set_green(x["color"]["g"]);
+            id(rgb_light).current_values.set_blue(x["color"]["b"]);
+            id(rgb_light).current_values.set_brightness(x["brightness"]);
 
   birth_message: 
     topic: "apollo_air_1_${device_id}/data"
@@ -228,6 +211,7 @@ binary_sensor:
   - platform: status
     name: Online
     id: ink_ha_connected
+
   - platform: gpio
     pin: 
       number: GPIO9
@@ -251,8 +235,8 @@ binary_sensor:
 
 
 text_sensor:
-    # Convert VOC Index To Text: 
-    # https://sensirion.com/media/documents/02232963/6294E043/Info_Note_VOC_Index.pdf
+  # Convert VOC Index To Text: 
+  # https://sensirion.com/media/documents/02232963/6294E043/Info_Note_VOC_Index.pdf
   - platform: template
     name: "VOC Quality"
     id: voc_quality
@@ -324,12 +308,13 @@ switch:
     restore_mode: RESTORE_DEFAULT_ON
     optimistic: true
     entity_category: "config"
+
   - platform: factory_reset
     id: factory_reset_switch
     internal: true
 
 
-#Used To Control RGB Light On Startup. Tells User Status Of Device
+# Used To Control RGB Light On Startup. Tells User Status Of Device
 interval:
   - interval: 1s
     then:
@@ -376,12 +361,6 @@ esphome:
   on_boot:
   - priority: -10
     then:
-      - lambda: !lambda |-
-          id(rgb_light_state) = "Off";
-          id(rgb_light_values)["r"] = 0;
-          id(rgb_light_values)["g"] = 0;
-          id(rgb_light_values)["b"] = 0;
-          id(rgb_light_brightness) = 0;
       - light.turn_off: rgb_light
 
 
@@ -432,6 +411,7 @@ number:
     update_interval: never
     step: 0.1
     mode: box
+
   - platform: template
     name: SEN55 Humidity Offset
     id: sen55_humidity_offset
@@ -448,13 +428,14 @@ number:
 
 
 script:
-  - id: mqtt_publish_sensor_data
+  # publish sensor and actuator data
+  - id: mqtt_publish_data
     then:
-      - lambda: |-
+      - lambda: !lambda |-
           id(mqtt_sensor).publish_json("apollo_air_1_${device_id}/data", [=](JsonObject root){
 
           // date and time
-          root["timestamp"] = id(sntp_time).now().strftime("%Y-%m-%d %X");
+          root["timestamp"] = id(sntp_time).now().strftime("%Y-%m-%d %X%z");
 
           // sensor data
           root["co2"]         = id(co2).state;
@@ -470,18 +451,81 @@ script:
           root["pm_10_0"]     = id(pm_10_0).state;
 
           // rgb light data
-          root["state"] = id(rgb_light_state);
-          root["r"] = id(rgb_light_values)["r"];
-          root["g"] = id(rgb_light_values)["g"];
-          root["b"] = id(rgb_light_values)["b"];
-          root["brightness"] = id(rgb_light_brightness);
+          root["state"] = id(rgb_light).current_values.is_on();
+          root["r"] = id(rgb_light).current_values.get_red();
+          root["g"] = id(rgb_light).current_values.get_green();
+          root["b"] = id(rgb_light).current_values.get_blue();
+          root["brightness"] = id(rgb_light).current_values.get_brightness();
 
           });
+  
+  # publish sensor and actuator data if an actuator's state changed
+  - id: mqtt_publish_data_on_actuator_state_change
+    then:
+      - lambda: !lambda |-
+          bool send = false;
+
+          if(id(previous_state) != id(rgb_light).current_values.is_on()){
+            id(previous_state) = id(rgb_light).current_values.is_on();
+            send = true;
+          }
+          if(id(previous_r) != id(rgb_light).current_values.get_red()){
+            id(previous_r) = id(rgb_light).current_values.get_red();
+            send = true;
+          }
+          if(id(previous_g) != id(rgb_light).current_values.get_green()){
+            id(previous_g) = id(rgb_light).current_values.get_green();
+            send = true;
+          }
+          if(id(previous_b) != id(rgb_light).current_values.get_blue()){
+            id(previous_b) = id(rgb_light).current_values.get_blue();
+            send = true;
+          }
+          if(id(previous_brightness) != id(rgb_light).current_values.get_brightness()){
+            id(previous_brightness) = id(rgb_light).current_values.get_brightness();
+            send = true;
+          }
+
+          if(send == true){
+            id(mqtt_sensor).publish_json("apollo_air_1_${device_id}/data", [=](JsonObject root){
+
+            // date and time
+            root["timestamp"] = id(sntp_time).now().strftime("%Y-%m-%d %X%z");
+
+            // sensor data
+            root["co2"]         = id(co2).state;
+            root["pressure"]    = id(dps310pressure).state;
+            root["temperature"] = id(dps310temperature).state;
+            root["humidity"]    = id(sen55_humidity).state;
+            root["nox"]         = id(sen55_nox).state;
+            root["voc"]         = id(sen55_voc).state;
+            root["voc_quality"] = id(voc_quality).state;
+            root["pm_1_0"]      = id(pm_1_0).state;
+            root["pm_2_5"]      = id(pm_2_5).state;
+            root["pm_4_0"]      = id(pm_4_0).state;
+            root["pm_10_0"]     = id(pm_10_0).state;
+
+            // rgb light data
+            root["state"] = id(rgb_light).current_values.is_on();
+            root["r"] = id(rgb_light).current_values.get_red();
+            root["g"] = id(rgb_light).current_values.get_green();
+            root["b"] = id(rgb_light).current_values.get_blue();
+            root["brightness"] = id(rgb_light).current_values.get_brightness();
+
+            });
+          }
 
 
 time:
+  # every 10 seconds, publish sensor and actuator data
   - platform: sntp
     on_time: 
       seconds: /10
       then: 
-        - script.execute: mqtt_publish_sensor_data
+        - script.execute: mqtt_publish_data
+  # every second, check if an actuator's state changed
+  - platform: sntp
+    on_time: 
+      seconds: /1,/2,/3,/4,/5,/6,/7,/8,/9,/10
+      then: 
+        - script.execute: mqtt_publish_data_on_actuator_state_change
