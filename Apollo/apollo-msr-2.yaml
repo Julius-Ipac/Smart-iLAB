@@ -805,7 +805,7 @@ script:
           }
 
           if(send == true){
-            id(mqtt_publish_data).execute()
+            id(mqtt_publish_data).execute();
           }
           
           id(actuator_state_changed) = false;
