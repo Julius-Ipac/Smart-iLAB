@@ -33,15 +33,30 @@ packages:
 
 
 globals:
-  - id: "led_strip_state"
+  - id: actuator_state_changed
     restore_value: no
-    type: std::string
-  - id: "led_strip_values"
+    type: 'bool'
+    initial_value: 'false'
+  - id: previous_light_state
     restore_value: no
-    type: std::map<std::string, float>
-  - id: "led_strip_brightness"
+    type: 'bool'
+    initial_value: 'false'
+  - id: previous_light_r
     restore_value: no
-    type: float
+    type: 'float'
+    initial_value: '0'
+  - id: previous_light_g
+    restore_value: no
+    type: 'float'
+    initial_value: '0'
+  - id: previous_light_b
+    restore_value: no
+    type: 'float'
+    initial_value: '0'
+  - id: previous_light_brightness
+    restore_value: no
+    type: 'float'
+    initial_value: '0'
 
 
 mqtt:
@@ -57,47 +72,17 @@ mqtt:
   on_json_message: 
     - topic: "airgradient_one_${device_id}/light"
       then: 
-        - if:
-            condition: 
-              lambda: !lambda |-
-                if(x.containsKey("state")){
-                if(x["state"] == "On"){
-                id(led_strip_state) = "On";
-                return true;
-                }
-                }
-                id(led_strip_state) = "Off";
-                return false;
-            then:
-              - light.turn_on: 
-                  id: led_strip
-
-                  red: !lambda |-
-                    if(x.containsKey("color")){
-                    if(x["color"].containsKey("r")){
-                    id(led_strip_values)["r"] = x["color"]["r"];
-                    return x["color"]["r"];}}
-                    return 0;
-                  green: !lambda |-
-                    if(x.containsKey("color")){
-                    if(x["color"].containsKey("g")){
-                    id(led_strip_values)["g"] = x["color"]["g"];
-                    return x["color"]["g"];}}
-                    return 0;
-                  blue: !lambda |-
-                    if(x.containsKey("color")){
-                    if(x["color"].containsKey("b")){
-                    id(led_strip_values)["b"] = x["color"]["b"];
-                    return x["color"]["b"];}}
-                    return 0;
-                  brightness: !lambda |-
-                    if(x.containsKey("brightness")){
-                    id(led_strip_brightness) = x["brightness"];
-                    return x["brightness"];
-                    }
-                    return 0;
-            else:
-              - light.turn_off: led_strip
+       - lambda: !lambda |-
+            if(x["state"]=="On"){
+            id(led_strip).current_values.set_state(static_cast<float>(1));
+            } else {
+            id(led_strip).current_values.set_state(static_cast<float>(0));
+            }
+            // values must be between 0 and 1
+            id(led_strip).current_values.set_red(x["color"]["r"]);
+            id(led_strip).current_values.set_green(x["color"]["g"]);
+            id(led_strip).current_values.set_blue(x["color"]["b"]);
+            id(led_strip).current_values.set_brightness(x["brightness"]);
 
   birth_message: 
     topic: "airgradient_one_${device_id}/data"
@@ -117,12 +102,6 @@ esphome:
   on_boot:
   - priority: -10
     then:
-      - lambda: !lambda |-
-          id(led_strip_state) = "Off";
-          id(led_strip_values)["r"] = 0;
-          id(led_strip_values)["g"] = 0;
-          id(led_strip_values)["b"] = 0;
-          id(led_strip_brightness) = 0;
       - light.turn_off: led_strip
 
 
@@ -139,7 +118,7 @@ script:
           id(mqtt_sensor).publish_json("airgradient_one_${device_id}/data", [=](JsonObject root){
 
           // date and time
-          root["timestamp"] = id(sntp_time).now().strftime("%Y-%m-%d %X");
+          root["timestamp"] = id(sntp_time).now().strftime("%Y-%m-%d %X%z");
 
           // sensor data
           root["co2"]         = id(co2).state;
@@ -160,12 +139,48 @@ script:
           root["brightness"] = id(led_strip_brightness);
 
           });
+          
+  # publish sensor and actuator data if an actuator's state changed
+  - id: mqtt_publish_data_on_actuator_state_change
+    then:
+      - lambda: !lambda |-
+          if(id(previous_light_state) != id(led_strip).current_values.is_on()){
+            id(previous_light_state) = id(led_strip).current_values.is_on();
+            id(actuator_state_changed) = true;
+          }
+          if(id(previous_light_r) != id(led_strip).current_values.get_red()){
+            id(previous_light_r) = id(led_strip).current_values.get_red();
+            id(actuator_state_changed) = true;
+          }
+          if(id(previous_light_g) != id(led_strip).current_values.get_green()){
+            id(previous_light_g) = id(led_strip).current_values.get_green();
+            id(actuator_state_changed) = true;
+          }
+          if(id(previous_light_b) != id(led_strip).current_values.get_blue()){
+            id(previous_light_b) = id(led_strip).current_values.get_blue();
+            id(actuator_state_changed) = true;
+          }
+          if(id(previous_light_brightness) != id(led_strip).current_values.get_brightness()){
+            id(previous_light_brightness) = id(led_strip).current_values.get_brightness();
+            id(actuator_state_changed) = true;
+          }
 
+          if(send == true){
+            id(mqtt_publish_data).execute();
+          }
+          
+          id(actuator_state_changed) = false;
 
-# execute mqtt_publish_sensor_data every 10 seconds
 time:
+  # every 10 seconds, publish sensor and actuator data
   - platform: sntp
     on_time: 
       seconds: /10
       then: 
-        - script.execute: mqtt_publish_sensor_data
+        - script.execute: mqtt_publish_data
+  # every second, check if an actuator's state changed
+  - platform: sntp
+    on_time: 
+      seconds: /1,/2,/3,/4,/5,/6,/7,/8,/9,/10
+      then: 
+        - script.execute: mqtt_publish_data_on_actuator_state_change
