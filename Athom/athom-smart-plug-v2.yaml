@@ -37,7 +37,7 @@ globals:
     initial_value: 'false'
 
 
-mqtt:
+mqtt: 
   id: mqtt_sensor
   broker: !secret broker_ip
   port: !secret broker_port
