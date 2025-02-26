@@ -41,16 +41,35 @@ globals:
     restore_value: no
     type: bool
     initial_value: "false"
-    
-  - id: "rgb_light_state"
+
+  - id: actuator_state_changed
     restore_value: no
-    type: std::string
-  - id: "rgb_light_values"
+    type: 'bool'
+    initial_value: 'false'
+  - id: previous_state
     restore_value: no
-    type: std::map<std::string, float>
-  - id: "rgb_light_brightness"
+    type: 'bool'
+    initial_value: 'false'
+  - id: previous_r
     restore_value: no
-    type: float
+    type: 'float'
+    initial_value: '0'
+  - id: previous_g
+    restore_value: no
+    type: 'float'
+    initial_value: '0'
+  - id: previous_b
+    restore_value: no
+    type: 'float'
+    initial_value: '0'
+  - id: previous_brightness
+    restore_value: no
+    type: 'float'
+    initial_value: '0'
+  - id: previous_buzzer_state
+    restore_value: no
+    type: 'bool'
+    initial_value: 'false'
 
 
 mqtt:
@@ -107,6 +126,7 @@ mqtt:
                     return 0;
             else:
               - light.turn_off: rgb_light
+              
     - topic: "apollo_msr_2_${device_id}/buzzer"
       then: 
         - rtttl.play: !lambda |-
@@ -424,12 +444,6 @@ esphome:
             - lambda: "id(testScript).execute();"
   - priority: -10
     then:
-      - lambda: !lambda |-
-          id(rgb_light_state) = "Off";
-          id(rgb_light_values)["r"] = 0;
-          id(rgb_light_values)["g"] = 0;
-          id(rgb_light_values)["b"] = 0;
-          id(rgb_light_brightness) = 0;
       - light.turn_off: rgb_light
 
 
@@ -724,13 +738,14 @@ script:
                 - light.turn_off:
                     id: rgb_light
 
-  - id: mqtt_publish_sensor_data
+  # publish sensor and actuator data
+  - id: mqtt_publish_data
     then:
       - lambda: !lambda |-
           id(mqtt_sensor).publish_json("apollo_msr_2_${device_id}/data", [=](JsonObject root){
 
           // date and time
-          root["timestamp"] = id(sntp_time).now().strftime("%Y-%m-%d %X");
+          root["timestamp"] = id(sntp_time).now().strftime("%Y-%m-%d %X%z");
 
           // sensor data
           root["co2"] = id(co2).state;
@@ -755,13 +770,56 @@ script:
           root["b"] = id(rgb_light_values)["b"];
           root["brightness"] = id(rgb_light_brightness);
 
+          // buzzer data
+          root["buzzer_state"] = id(rtttl_buzzer).is_playing();
+
           });
+  
+  # publish sensor and actuator data if an actuator's state changed
+  - id: mqtt_publish_data_on_actuator_state_change
+    then:
+      - lambda: !lambda |-
+          if(id(previous_state) != id(rgb_light).current_values.is_on()){
+            id(previous_state) = id(rgb_light).current_values.is_on();
+            id(actuator_state_changed) = true;
+          }
+          if(id(previous_r) != id(rgb_light).current_values.get_red()){
+            id(previous_r) = id(rgb_light).current_values.get_red();
+            id(actuator_state_changed) = true;
+          }
+          if(id(previous_g) != id(rgb_light).current_values.get_green()){
+            id(previous_g) = id(rgb_light).current_values.get_green();
+            id(actuator_state_changed) = true;
+          }
+          if(id(previous_b) != id(rgb_light).current_values.get_blue()){
+            id(previous_b) = id(rgb_light).current_values.get_blue();
+            id(actuator_state_changed) = true;
+          }
+          if(id(previous_brightness) != id(rgb_light).current_values.get_brightness()){
+            id(previous_brightness) = id(rgb_light).current_values.get_brightness();
+            id(actuator_state_changed) = true;
+          }
+          if(id(previous_buzzer_state) != id(rtttl_buzzer).is_playing()){
+            id(previous_brightness) = id(rtttl_buzzer).is_playing();
+            id(actuator_state_changed) = true;
+          }
 
+          if(send == true){
+            id(mqtt_publish_data).execute()
+          }
+          
+          id(actuator_state_changed) = false;
 
-# publish sensor data every 10 seconds
 time:
+  # every 10 seconds, publish sensor and actuator data
   - platform: sntp
     on_time: 
       seconds: /10
       then: 
-        - script.execute: mqtt_publish_sensor_data
+        - script.execute: mqtt_publish_data
+  # every second, check if an actuator's state changed
+  - platform: sntp
+    on_time: 
+      seconds: /1,/2,/3,/4,/5,/6,/7,/8,/9,/10
+      then: 
+        - script.execute: mqtt_publish_data_on_actuator_state_change
