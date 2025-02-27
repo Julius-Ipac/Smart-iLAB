@@ -112,6 +112,7 @@ binary_sensor:
 
 
 script:
+  # publish sensor and actuator data 
   - id: mqtt_publish_sensor_data
     then:
       - lambda: |-
