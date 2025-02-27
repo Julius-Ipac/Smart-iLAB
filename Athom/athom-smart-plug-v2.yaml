@@ -242,7 +242,7 @@ script:
           root["voltage"] = id(voltage).state;
   
           // relay data
-          root["state"] = id(relay).state;
+          root["relay_state"] = id(relay).state;
           
           });
             
