@@ -133,11 +133,11 @@ script:
           root["pm_10_0"]     = id(pm_10_0).state;
 
           // led strip data
-          root["state"] = id(led_strip_state);
-          root["r"] = id(led_strip_values)["r"];
-          root["g"] = id(led_strip_values)["g"];
-          root["b"] = id(led_strip_values)["b"];
-          root["brightness"] = id(led_strip_brightness);
+          root["state"] = id(led_strip).current_values.is_on();
+          root["r"] = id(led_strip).current_values.get_red();
+          root["g"] = id(led_strip).current_values.get_green();
+          root["b"] = id(led_strip).current_values.get_blue();
+          root["brightness"] = id(led_strip).current_values.get_brightness();
 
           });
           
