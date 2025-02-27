@@ -250,7 +250,7 @@ script:
     then:
       - lambda: !lambda |-
           if(id(previous_relay_state) != id(relay).state){
-            id(previous_state) = id(relay).state;
+            id(previous_relay_state) = id(relay).state;
             id(actuator_state_changed) = true;
           }
     
