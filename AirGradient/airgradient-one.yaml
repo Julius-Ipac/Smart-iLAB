@@ -113,7 +113,7 @@ binary_sensor:
 
 script:
   # publish sensor and actuator data 
-  - id: mqtt_publish_sensor_data
+  - id: mqtt_publish_data
     then:
       - lambda: |-
           id(mqtt_sensor).publish_json("airgradient_one_${device_id}/data", [=](JsonObject root){
