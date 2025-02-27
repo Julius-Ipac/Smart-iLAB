@@ -165,7 +165,7 @@ script:
             id(actuator_state_changed) = true;
           }
 
-          if(send == true){
+          if(id(actuator_state_changed) == true){
             id(mqtt_publish_data).execute();
           }
           
