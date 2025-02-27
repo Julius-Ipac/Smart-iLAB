@@ -52,9 +52,9 @@ mqtt:
     then: 
        - lambda: !lambda |-
            if(x["state"] == "On"){
-           id(relay).turn_on();
+             id(relay).turn_on();
            } else {
-           id(relay).turn_off();
+             id(relay).turn_off();
            }
   
   birth_message: 
@@ -253,12 +253,11 @@ script:
               id(actuator_state_changed) = true;
             }
   
-            if(send == true){
-              id(mqtt_publish_data).execute();
-            }
-            
-            id(actuator_state_changed) = false;
-
+          if(id(actuator_state_changed) == true){
+            id(mqtt_publish_data).execute();
+          }
+          
+          id(actuator_state_changed) = false;
 
 time:
   # every 10 seconds, publish sensor and actuator data
