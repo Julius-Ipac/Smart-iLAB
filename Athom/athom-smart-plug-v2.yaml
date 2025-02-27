@@ -244,20 +244,20 @@ script:
           
           });
           
-    # publish sensor and actuator data if an actuator's state changed
-    - id: mqtt_publish_data_on_actuator_state_change
-      then:
-        - lambda: !lambda |-
-            if(id(previous_relay_state) != id(relay).state){
-              id(previous_state) = id(relay).state;
-              id(actuator_state_changed) = true;
-            }
-  
-          if(id(actuator_state_changed) == true){
-            id(mqtt_publish_data).execute();
+  # publish sensor and actuator data if an actuator's state changed
+  - id: mqtt_publish_data_on_actuator_state_change
+    then:
+      - lambda: !lambda |-
+          if(id(previous_relay_state) != id(relay).state){
+            id(previous_state) = id(relay).state;
+            id(actuator_state_changed) = true;
           }
-          
-          id(actuator_state_changed) = false;
+  
+        if(id(actuator_state_changed) == true){
+          id(mqtt_publish_data).execute();
+        }
+        
+        id(actuator_state_changed) = false;
 
 time:
   # every 10 seconds, publish sensor and actuator data
