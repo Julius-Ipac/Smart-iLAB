@@ -85,54 +85,22 @@ mqtt:
   on_json_message: 
     - topic: "apollo_msr_2_${device_id}/light"
       then: 
-        - if:
-            condition: 
-              lambda: !lambda |-
-                if(x.containsKey("state")){
-                if(x["state"] == "On"){
-                id(rgb_light_state) = "On";
-                return true;
-                }
-                }
-                id(rgb_light_state) = "Off";
-                return false;
-            then:
-              - light.turn_on: 
-                  id: rgb_light
-
-                  red: !lambda |-
-                    if(x.containsKey("color")){
-                    if(x["color"].containsKey("r")){
-                    id(rgb_light_values)["r"] = x["color"]["r"];
-                    return x["color"]["r"];}}
-                    return 0;
-                  green: !lambda |-
-                    if(x.containsKey("color")){
-                    if(x["color"].containsKey("g")){
-                    id(rgb_light_values)["g"] = x["color"]["g"];
-                    return x["color"]["g"];}}
-                    return 0;
-                  blue: !lambda |-
-                    if(x.containsKey("color")){
-                    if(x["color"].containsKey("b")){
-                    id(rgb_light_values)["b"] = x["color"]["b"];
-                    return x["color"]["b"];}}
-                    return 0;
-                  brightness: !lambda |-
-                    if(x.containsKey("brightness")){
-                    id(rgb_light_brightness) = x["brightness"];
-                    return x["brightness"];
-                    }
-                    return 0;
-            else:
-              - light.turn_off: rgb_light
+        - lambda: !lambda |-
+            if(x["state"]=="On"){
+              id(rgb_light).current_values.set_state(static_cast<float>(1));
+            } else {
+              id(rgb_light).current_values.set_state(static_cast<float>(0));
+            }
+            // values must be between 0 and 1
+            id(rgb_light).current_values.set_red(x["color"]["r"]);
+            id(rgb_light).current_values.set_green(x["color"]["g"]);
+            id(rgb_light).current_values.set_blue(x["color"]["b"]);
+            id(rgb_light).current_values.set_brightness(x["brightness"]);
               
     - topic: "apollo_msr_2_${device_id}/buzzer"
       then: 
         - rtttl.play: !lambda |-
-            if(x.containsKey("mtttl_string"))
             return x["mtttl_string"];
-            return "";
 
   birth_message: 
     topic: "apollo_msr_2_${device_id}/data"
@@ -371,7 +339,6 @@ light:
           update_interval: 100ms
           min_brightness: 50%
           max_brightness: 100%
-    
 
 
 button:
