@@ -730,11 +730,11 @@ script:
           root["still_target"]     = id(radar_has_still_target).state;
 
           // rgb light data
-          root["state"] = id(rgb_light_state);
-          root["r"] = id(rgb_light_values)["r"];
-          root["g"] = id(rgb_light_values)["g"];
-          root["b"] = id(rgb_light_values)["b"];
-          root["brightness"] = id(rgb_light_brightness);
+          root["state"] = id(rgb_light).current_values.is_on();
+          root["r"] = id(rgb_light).current_values.get_red();
+          root["g"] = id(rgb_light).current_values.get_green();
+          root["b"] = id(rgb_light).current_values.get_blue();
+          root["brightness"] = id(rgb_light).current_values.get_brightness();
 
           // buzzer data
           root["buzzer_state"] = id(rtttl_buzzer).is_playing();
