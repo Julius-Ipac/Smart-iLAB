@@ -34,7 +34,7 @@ globals:
   - id: previous_relay_state
     restore_value: no
     type: 'bool'
-    initial_value: 'false'
+    initial_value: 'true'
 
 
 mqtt: 
