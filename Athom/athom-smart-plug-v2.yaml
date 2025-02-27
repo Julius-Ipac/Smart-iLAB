@@ -223,6 +223,7 @@ uart:
 
 
 script:
+  # publish sensor and actuator data
   - id: mqtt_publish_data
     then:
       - lambda: !lambda |-
@@ -230,7 +231,7 @@ script:
           
           // timestamp
           root["timestamp"] = id(sntp_time).now().strftime("%Y-%m-%d %X%z");
-
+  
           // sensor data
           root["current"] = id(current).state;
           root["energy"] = id(energy).state;
@@ -238,12 +239,12 @@ script:
           root["total_daily_energy"] = id(total_daily_energy_sensor).state;
           root["total_energy"] = id(total_energy_sensor).state;
           root["voltage"] = id(voltage).state;
-
+  
           // relay data
           root["state"] = id(relay).state;
           
           });
-          
+            
   # publish sensor and actuator data if an actuator's state changed
   - id: mqtt_publish_data_on_actuator_state_change
     then:
