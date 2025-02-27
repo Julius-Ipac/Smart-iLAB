@@ -237,6 +237,7 @@ output:
     id: buzzer
 rtttl:
  output: buzzer
+ id: rtttl_buzzer
 
 
 binary_sensor:
