@@ -86,16 +86,21 @@ mqtt:
     - topic: "apollo_msr_2_${device_id}/light"
       then: 
         - lambda: !lambda |-
-            if(x["state"]=="On"){
+            // state must be "ON" or "OFF"
+            if(x.containsKey("state") && x["state"]=="ON"){
               id(rgb_light).current_values.set_state(static_cast<float>(1));
-            } else {
+            }else if(x.containsKey("state") && x["state"]=="OFF"){
               id(rgb_light).current_values.set_state(static_cast<float>(0));
             }
             // values must be between 0 and 1
-            id(rgb_light).current_values.set_red(x["color"]["r"]);
-            id(rgb_light).current_values.set_green(x["color"]["g"]);
-            id(rgb_light).current_values.set_blue(x["color"]["b"]);
-            id(rgb_light).current_values.set_brightness(x["brightness"]);
+            if(x.containsKey("r"))
+              id(rgb_light).current_values.set_red(x["r"]);
+            if(x.containsKey("g"))
+              id(rgb_light).current_values.set_green(x["g"]);
+            if(x.containsKey("b"))
+              id(rgb_light).current_values.set_blue(x["b"]);
+            if(x.containsKey("brightness"))
+              id(rgb_light).current_values.set_brightness(x["brightness"]);
               
     - topic: "apollo_msr_2_${device_id}/buzzer"
       then: 
