@@ -74,15 +74,19 @@ mqtt:
       then: 
        - lambda: !lambda |-
             if(x["state"]=="On"){
-            id(led_strip).current_values.set_state(static_cast<float>(1));
+              id(led_strip).current_values.set_state(static_cast<float>(1));
             } else {
-            id(led_strip).current_values.set_state(static_cast<float>(0));
+              id(led_strip).current_values.set_state(static_cast<float>(0));
             }
             // values must be between 0 and 1
-            id(led_strip).current_values.set_red(x["color"]["r"]);
-            id(led_strip).current_values.set_green(x["color"]["g"]);
-            id(led_strip).current_values.set_blue(x["color"]["b"]);
-            id(led_strip).current_values.set_brightness(x["brightness"]);
+            if(x.containsKey("r"))
+              id(led_strip).current_values.set_red(x["r"]);
+            if(x.containsKey("g"))
+              id(led_strip).current_values.set_green(x["g"]);
+            if(x.containsKey("b"))
+              id(led_strip).current_values.set_blue(x["b"]);
+            if(x.containsKey("brightness"))
+              id(led_strip).current_values.set_brightness(x["brightness"]);
 
   birth_message: 
     topic: "airgradient_one_${device_id}/data"
