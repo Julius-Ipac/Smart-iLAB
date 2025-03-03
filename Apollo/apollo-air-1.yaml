@@ -69,9 +69,10 @@ mqtt:
     - topic: "apollo_air_1_${device_id}/light"
       then: 
         - lambda: !lambda |-
-            if(x["state"]=="On"){
+            // state must be "ON" or "OFF"
+            if(x.containsKey && x["state"]=="ON"){
               id(rgb_light).current_values.set_state(static_cast<float>(1));
-            } else {
+            }else if(x.containsKey && x["state"]=="OFF"){
               id(rgb_light).current_values.set_state(static_cast<float>(0));
             }
             // values must be between 0 and 1
