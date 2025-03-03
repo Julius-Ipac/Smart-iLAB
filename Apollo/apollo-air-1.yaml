@@ -70,9 +70,9 @@ mqtt:
       then: 
         - lambda: !lambda |-
             // state must be "ON" or "OFF"
-            if(x.containsKey && x["state"]=="ON"){
+            if(x.containsKey("state") && x["state"]=="ON"){
               id(rgb_light).current_values.set_state(static_cast<float>(1));
-            }else if(x.containsKey && x["state"]=="OFF"){
+            }else if(x.containsKey("state") && x["state"]=="OFF"){
               id(rgb_light).current_values.set_state(static_cast<float>(0));
             }
             // values must be between 0 and 1
