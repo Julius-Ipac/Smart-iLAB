@@ -51,9 +51,9 @@ mqtt:
     topic: "athom_smart_plug_v2_${device_id}/relay"
     then: 
        - lambda: !lambda |-
-           if(x["state"] == "On"){
+           if(x["state"] == "ON"){
              id(relay).turn_on();
-           } else {
+           }else if(x["state"] == "OFF"){
              id(relay).turn_off();
            }
   
